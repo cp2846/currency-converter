@@ -114,9 +114,8 @@ def parseString(str):
 	while count >= 0:
 		if result[count][1] == "":
 			result.pop(count)
-			count -= 1
-		else:
-			count -= 1
+			
+		count -= 1
 			
 	#return results
 	return result
@@ -143,3 +142,4 @@ for test in tests:
 	
 
 raw_input("Press Enter")
+
