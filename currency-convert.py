@@ -20,17 +20,14 @@ def convert(mode, val):
 
 	converted_GBP = converted_USD = converted_EUR = 0
 	
-	#if the mode is USD, convert USD value to GBP and EUR
 	if mode == "$":
 		converted_EUR = EUR / USD * val
 		converted_GBP = converted_EUR * GBP
-		#round to 2 decimal places and converted to string
 		converted_EUR = str(round(converted_EUR,2)) 
 		converted_GBP = str(round(converted_GBP,2))
-		#return result
 		return "$"+str(val)+" USD is £"+converted_GBP+", €"+converted_EUR
 		
-	#if mode is pounds, convert to USD and EUR
+	
 	elif mode == u"£":
 		converted_EUR = EUR / GBP * val
 		converted_USD = converted_EUR * USD
@@ -38,14 +35,13 @@ def convert(mode, val):
 		converted_USD = str(round(converted_USD,2))
 		return "£"+str(val)+"  is $"+converted_USD+", €"+converted_EUR
 		
-	#if mode is EUR, convert to USD and GBP
+	
 	else:
 		converted_GBP = GBP * val 
 		converted_USD = val * USD
-		#round to 2 decimal places and converted to string
 		converted_USD = str(round(converted_USD,2))
 		converted_GBP = str(round(converted_GBP,2))
-		#return result
+		
 		return "€"+str(val)+" is £"+converted_GBP+", $"+converted_USD
 
 		
@@ -65,44 +61,35 @@ def parseString(str):
 	
 	#String parsing algorithm
 	for ch in str:
-		
+	
 		if started:
-		
-			#checks if the current character in the string is a digit, and if so, adds it to sublist
 			if ch in digits:
 				result[i][1] += ch
 
-			#check to see if character in string is a decimal point
 			elif ch == ".":
-				
 				#If there's already a demical point in this index in the result, assume it is a period and move on
 				if not "." in result[i][1]:
 					result[i][1] += "."
-				
+
 			#ignore commas e.g. $3,830 <- don't want this to be interpreted as $3
 			elif ch == ",":
 				continue
 						
-			#if character is not a digit or a decimal/period, move on
 			else:
 				started = False
 				
-		#new dollar value
 		elif ch == "$":
 			started = True
-			#append new sublist to list, update i
 			result.append(["",""])
 			i = len(result)-1
 			result[i][0] = "$"
 			
-		#new EUR value
 		elif ch == u"€":
 			started = True
 			result.append(["",""])
 			i = len(result)-1
 			result[i][0] = u"€"
 			
-		#new GBP value
 		elif ch == u"£":
 			started = True
 			result.append(["",""])
@@ -114,10 +101,8 @@ def parseString(str):
 	while count >= 0:
 		if result[count][1] == "":
 			result.pop(count)
-			
 		count -= 1
 			
-	#return results
 	return result
 
 
