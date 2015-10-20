@@ -9,7 +9,6 @@ import urllib2
 def convert(mode, val):
 	
 	val = float(val)
-	
 	#Make API call to fixer.io, load JSON data for exchange rates
 	url = urllib2.urlopen('http://api.fixer.io/latest?symbols=USD,GBP')
 	data = json.load(url)
@@ -27,7 +26,6 @@ def convert(mode, val):
 		converted_GBP = str(round(converted_GBP,2))
 		return "$"+str(val)+" USD is £"+converted_GBP+", €"+converted_EUR
 		
-	
 	elif mode == u"£":
 		converted_EUR = EUR / GBP * val
 		converted_USD = converted_EUR * USD
@@ -35,33 +33,23 @@ def convert(mode, val):
 		converted_USD = str(round(converted_USD,2))
 		return "£"+str(val)+"  is $"+converted_USD+", €"+converted_EUR
 		
-	
 	else:
 		converted_GBP = GBP * val 
 		converted_USD = val * USD
 		converted_USD = str(round(converted_USD,2))
 		converted_GBP = str(round(converted_GBP,2))
-		
 		return "€"+str(val)+" is £"+converted_GBP+", $"+converted_USD
 
 		
 #STRING PARSING ALGORITHM
 def parseString(str):
 	
-	#convert parsed string to unicode
 	str = str.decode('utf-8')
-	
-	#container for all of the currency values. This is a nested list
 	result = []
-	
-	#an array containing digits as characters
 	digits = ['0','1','2','3','4','5','6','7','8','9']
-	
 	started = False
 	
-	#String parsing algorithm
 	for ch in str:
-	
 		if started:
 			if ch in digits:
 				result[i][1] += ch
