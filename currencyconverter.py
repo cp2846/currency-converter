@@ -45,19 +45,20 @@ def convert(mode, val):
 def parseString(str):
 	
 	str = str.decode('utf-8')
-	result = []
+	detected_currency = []
 	digits = ['0','1','2','3','4','5','6','7','8','9']
 	started = False
+	i = 0
 	
 	for ch in str:
 		if started:
 			if ch in digits:
-				result[i][1] += ch
+				detected_currency[i][1] += ch
 
 			elif ch == ".":
 				#If there's already a demical point in this index in the result, assume it is a period and move on
-				if not "." in result[i][1]:
-					result[i][1] += "."
+				if not "." in detected_currency[i][1]:
+					detected_currency[i][1] += "."
 
 			#ignore commas e.g. $3,830 <- don't want this to be interpreted as $3
 			elif ch == ",":
@@ -68,33 +69,38 @@ def parseString(str):
 				
 		elif ch == "$":
 			started = True
-			result.append(["",""])
-			i = len(result)-1
-			result[i][0] = "$"
+			__addNewItem(detected_currency,"$")
+			i = len(detected_currency)-1
 			
 		elif ch == u"€":
 			started = True
-			result.append(["",""])
-			i = len(result)-1
-			result[i][0] = u"€"
+			__addNewItem(detected_currency,u"€")
+			i = len(detected_currency)-1
 			
 		elif ch == u"£":
 			started = True
-			result.append(["",""])
-			i = len(result)-1
-			result[i][0] = u"£"
+			__addNewItem(detected_currency,u"£")
+			i = len(detected_currency)-1
 		
-	#clean up list - remove empty sublists
-	count = len(result)-1
-	while count >= 0:
-		if result[count][1] == "":
-			result.pop(count)
-		count -= 1
+	__removeEmpty(detected_currency)
 			
-	return result
+	return detected_currency
 
-
+#clean up list - remove empty sublists
+def __removeEmpty(currency_list):
+	current = len(currency_list)-1
+	while current >= 0:
+		if currency_list[current][1] == "":
+			currency_list.pop(current)
+		current -= 1
+	return currency_list
 	
+#currency found, add sublist to list		
+def __addNewItem(currency_list,currency_type):
+	currency_list.append(["",""])
+	i = len(currency_list)-1
+	currency_list[i][0] = currency_type
+			
 	
 #TESTS. IGNORE FOR NOW	
 tests = ["This is a string containing a sub-string $4.43 which is a value in USD.","This is a string containing no currency value.","$400.38.3","this is some $gibberish that I don't want my script to confuse for a currency-containing string","$380 and the rest was $38","$$$$$","This is some euro right here bruh €400","£43493, this is too much for me!"]
@@ -102,17 +108,17 @@ tests = ["This is a string containing a sub-string $4.43 which is a value in USD
 for test in tests:
 	count = 0
 	output = ""
-	results = parseString(test)
-	if len(results) > 0:
-		for result in results:
+	test_results = parseString(test)
+	if len(test_results) > 0:
+		for test_result in test_results:
 			try:
-				output += convert(result[0],result[1])
+				output += convert(test_result[0],test_result[1])
 				count += 1
 			except:
 				print "An error has occured"
 	if count > 0:
 		print output
-	
+
+
 
 raw_input("Press Enter")
-
