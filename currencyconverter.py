@@ -46,13 +46,13 @@ def parseString(str):
 	
 	str = str.decode('utf-8')
 	detected_currency = []
-	digits = ['0','1','2','3','4','5','6','7','8','9']
 	started = False
 	i = 0
 	
 	for ch in str:
 		if started:
-			if ch in digits:
+			#check ordinal value of character to see whether or not it's a digit
+			if ord(ch) >= 48 and ord(ch) <= 57:
 				detected_currency[i][1] += ch
 
 			elif ch == ".":
@@ -101,24 +101,3 @@ def __addNewItem(currency_list,currency_type):
 	i = len(currency_list)-1
 	currency_list[i][0] = currency_type
 			
-	
-#TESTS. IGNORE FOR NOW	
-tests = ["This is a string containing a sub-string $4.43 which is a value in USD.","This is a string containing no currency value.","$400.38.3","this is some $gibberish that I don't want my script to confuse for a currency-containing string","$380 and the rest was $38","$$$$$","This is some euro right here bruh €400","£43493, this is too much for me!"]
-
-for test in tests:
-	count = 0
-	output = ""
-	test_results = parseString(test)
-	if len(test_results) > 0:
-		for test_result in test_results:
-			try:
-				output += convert(test_result[0],test_result[1])
-				count += 1
-			except:
-				print "An error has occured"
-	if count > 0:
-		print output
-
-
-
-raw_input("Press Enter")
