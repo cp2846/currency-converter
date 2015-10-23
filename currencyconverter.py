@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 import json
 import urllib2
+import re
 
 #conversion script. Takes two arguments: mode and val
-#mode is the type of currency e.g. £, $ or €
-#val is the amount of currency, e.g. 400,000, 93.34, 0.39
+#mode is the type of currency e.g. '£', '$' or '€'
+#val is the amount of currency, e.g. '400,000', '93.34', '0.39'
 def convert(mode, val):
 	
 	val = float(val)
@@ -24,9 +25,9 @@ def convert(mode, val):
 		converted_GBP = converted_EUR * GBP
 		converted_EUR = str(round(converted_EUR,2)) 
 		converted_GBP = str(round(converted_GBP,2))
-		return "$"+str(val)+" USD is £"+converted_GBP+", €"+converted_EUR
+		return "$"+str(val)+" is £"+converted_GBP+", €"+converted_EUR
 		
-	elif mode == u"£":
+	elif mode == "£":
 		converted_EUR = EUR / GBP * val
 		converted_USD = converted_EUR * USD
 		converted_EUR = str(round(converted_EUR,2))
@@ -42,62 +43,60 @@ def convert(mode, val):
 
 		
 #STRING PARSING ALGORITHM
-def parseString(str):
+def parseString(string):
+
+	string = string.lower()
 	
-	str = str.decode('utf-8')
 	detected_currency = []
-	started = False
-	i = 0
 	
-	for ch in str:
-		if started:
-			#check ordinal value of character to see whether or not it's a digit
-			if ord(ch) >= 48 and ord(ch) <= 57:
-				detected_currency[i][1] += ch
+	#get currency type, USD, GBP, or EUR
+	type = r'([\$£€]{1})'
+	#Get digits, commas allowed
+	number = r'([\d+.,]+)'
+	#qualifiers such as "thousand", "million", "m", "k", etc
+	amounts = r'((million)?(m[\.\,\s])?(k[\.\,\s])?(thousand)?)'
 
-			elif ch == ".":
-				#If there's already a demical point in this index in the result, assume it is a period and move on
-				if not "." in detected_currency[i][1]:
-					detected_currency[i][1] += "."
-
-			#ignore commas e.g. $3,830 <- don't want this to be interpreted as $3
-			elif ch == ",":
-				continue
-						
-			else:
-				started = False
-				
-		elif ch == "$":
-			started = True
-			__addNewItem(detected_currency,"$")
-			i = len(detected_currency)-1
-			
-		elif ch == u"€":
-			started = True
-			__addNewItem(detected_currency,u"€")
-			i = len(detected_currency)-1
-			
-		elif ch == u"£":
-			started = True
-			__addNewItem(detected_currency,u"£")
-			i = len(detected_currency)-1
-		
-	__removeEmpty(detected_currency)
-			
+	matcher = re.compile(type+number+r"[\s]*"+amounts)
+	
+	matches = re.findall(matcher, string)
+	
+	
+	for i in matches:
+		type = i[0]
+		value = i[1]
+		if __checkValid(value):
+			value = __checkIfThousandsOrMillions(i[1],i[2])
+			detected_currency.append([type,value])
+	
 	return detected_currency
-
-#clean up list - remove empty sublists
-def __removeEmpty(currency_list):
-	current = len(currency_list)-1
-	while current >= 0:
-		if currency_list[current][1] == "":
-			currency_list.pop(current)
-		current -= 1
-	return currency_list
-	
-#currency found, add sublist to list		
-def __addNewItem(currency_list,currency_type):
-	currency_list.append(["",""])
-	i = len(currency_list)-1
-	currency_list[i][0] = currency_type
 			
+def __checkValid(val):
+	if val.count(".") >= 2:
+		return False
+	if val == "":
+		return False
+	return True
+
+def __checkIfThousandsOrMillions(val,string):
+	
+	string = string.replace(",","")
+	string = string.replace(" ","")
+	string = string.replace("."," ")
+	
+	val = str(val)
+	
+	val = val.replace(",", "")
+	
+	if val.count(".") >= 2:
+		pass
+		
+	val = float(val)
+	if string == "million" or string == "m":
+		val *= 1000000
+	elif string == "thousand" or string == "k":
+		val *= 1000
+	
+	return val
+
+
+
