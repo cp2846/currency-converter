@@ -4,10 +4,8 @@ import json
 import urllib2
 import re
 
-#conversion script. Takes two arguments: mode and val
-#mode is the type of currency e.g. '£', '$' or '€'
-#val is the amount of currency, e.g. '400000', '93.34', '0.39'
-def convert(mode, val):
+
+def convert(base, val):
 
 	val = float(val)
 	#Make API call to fixer.io, load JSON data for exchange rates
@@ -15,44 +13,35 @@ def convert(mode, val):
 	data = json.load(url)
 	USD = data['rates']['USD']
 	GBP = data['rates']['GBP']
-	EUR = 1.00
+	EUR = base_rate = 1.00
 
-	converted_GBP = converted_USD = converted_EUR = 0
+	convert_between = [
+					['£',GBP],
+					['$',USD],
+					['€',EUR]
+				]
 	
-	if mode == "$":
-		converted_EUR = EUR / USD * val
-		converted_GBP = converted_EUR * GBP
-		#format output with commas as thousands separators, round to two decimal places
-		converted_EUR = "{:,}".format(round(converted_EUR,2))
-		converted_GBP = "{:,}".format(round(converted_GBP,2))
-		val = "{:,}".format(val)
+	for type in convert_between:
+		if type[0] == base:
+			base_rate = type[1]
+	
+	output = base+"{:,}".format(val)
+	
+	for type in convert_between:
+		if type[1] == base_rate:
+			continue
+		else:
+			converted_amount =  round(type[1] / base_rate * val,2)
+			converted_amount = "{:,}".format(converted_amount)
+		output += " => "+type[0]+str(converted_amount)
 		
-		return "$"+val+" => £"+converted_GBP+" or €"+converted_EUR
-		
-	elif mode == "£":
-		converted_EUR = EUR / GBP * val
-		converted_USD = converted_EUR * USD
-		converted_EUR = "{:,}".format(round(converted_EUR,2))
-		converted_USD = "{:,}".format(round(converted_USD,2))
-		val = "{:,}".format(val)
-		return "£"+val+" => $"+converted_USD+" or €"+converted_EUR
-		
-	else:
-		converted_GBP = GBP * val 
-		converted_USD = val * USD
-		converted_USD = "{:,}".format(round(converted_USD,2))
-		converted_GBP = "{:,}".format(round(converted_GBP,2))
-		val = "{:,}".format(val)
-		return "€"+val+" => £"+converted_GBP+"or $"+converted_USD
+	return output
 
 def parseString(string):
-	
-	#hack to get some regexes to register correctly when term is at end of string
-	string += " "
 	#REGEX PARAMETERS
 	type = r'([\$£€])'
-	number = r'([\d+.,]+)'
-	amounts = r'((million)?(m[\.\,\s])?(k[\.\,\s])?(thousand)?(billion)?(b[\.\,\s])?)'
+	number = r'([(\d+),]+(\.\d{2})?)'
+	amounts = r'((million|m|billion|b|k|thousand)?(\s|\.|\,|$))?'
 	matcher = re.compile(type+number+r"[\s]*"+amounts, re.UNICODE | re.IGNORECASE)
 	matches = re.findall(matcher, string)
 	
@@ -61,7 +50,7 @@ def parseString(string):
 	for match in matches:
 		type = match[0]
 		value = match[1]
-		magnitude = match[2]
+		magnitude = match[4]
 		
 		if __checkValid(value):
 			value = __checkMagnitude(value,magnitude)
@@ -70,34 +59,22 @@ def parseString(string):
 	return detected_currency
 	
 def __checkValid(val):
-
-	if val.count(".") >= 2:
+	val = val.replace(",","")
+	try:
+		val = float(val)
+		return True
+	except:
 		return False
-		
-	return True
 	
 def __checkMagnitude(val,string):
-	string = __stripChars(string)
-	val = str(val)
 	val = val.replace(",", "")
 	val = float(val)
 	
 	if string == "billion" or string == "b":
 		val *= 1000000000
-	
 	if string == "million" or string == "m":
 		val *= 1000000
-		
-	elif string == "thousand" or string == "k":
+	if string == "thousand" or string == "k":
 		val *= 1000
-	
 	return val
 
-#strips characters like " ", ".", etc. from "million,", "thousand " etc.
-def __stripChars(string):
-	string = string.replace(",","")
-	string = string.replace(" ","")
-	string = string.replace("."," ")
-	
-	return string
-	
