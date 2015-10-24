@@ -1,5 +1,5 @@
 # currency-converter
-Python script that parses input strings and uses exchange rate values from the fixer.io API to convert between GBP, USD, and EUR. This is a WIP version of a script that I plan on using in a bigger, later project.
+Python module that parses input strings and uses exchange rate values from the fixer.io API to convert between GBP, USD, and EUR. This is what is used to detect and convert currency values in the [Reddit Currency Bot](https://github.com/cp2846/reddit-currency-bot).
 
 
 # Usage
