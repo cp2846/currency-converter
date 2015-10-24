@@ -45,8 +45,6 @@ def convert(mode, val):
 		val = "{:,}".format(val)
 		return "€"+val+" => £"+converted_GBP+"or $"+converted_USD
 
-		
-
 def parseString(string):
 	
 	#hack to get some regexes to register correctly when term is at end of string
@@ -70,8 +68,6 @@ def parseString(string):
 			detected_currency.append([type,value])
 	
 	return detected_currency
-	
-
 	
 def __checkValid(val):
 
