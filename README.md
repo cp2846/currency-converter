@@ -1,4 +1,4 @@
-# currency-converter
+# Currency Converter
 Python module that parses input strings and uses exchange rate values from the fixer.io API to convert between GBP, USD, and EUR. This is what is used to detect and convert currency values in the [Reddit Currency Bot](https://github.com/cp2846/reddit-currency-bot).
 
 
@@ -28,3 +28,7 @@ Which can be converted by calling on the convert method:
         
     >> $4,430,000 => £2,860,000 or €3,900,000
     >> £400,000 => $618,770.4 or €544,069.64
+
+# To do
+
+* Apply DRY to conversion script rather than manually handling cases for each type of currency
