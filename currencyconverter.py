@@ -2,17 +2,18 @@
 # -*- coding: utf-8 -*-
 import json
 import urllib2
+import re
 
 #conversion script. Takes two arguments: mode and val
-#mode is the type of currency e.g. £, $ or €
-#val is the amount of currency, e.g. 400,000, 93.34, 0.39
+#mode is the type of currency e.g. '£', '$' or '€'
+#val is the amount of currency, e.g. '400000', '93.34', '0.39'
 def convert(mode, val):
-	
+
 	val = float(val)
 	#Make API call to fixer.io, load JSON data for exchange rates
 	url = urllib2.urlopen('http://api.fixer.io/latest?symbols=USD,GBP')
 	data = json.load(url)
-
+	print type(mode)
 	USD = data['rates']['USD']
 	GBP = data['rates']['GBP']
 	EUR = 1.00
@@ -22,82 +23,87 @@ def convert(mode, val):
 	if mode == "$":
 		converted_EUR = EUR / USD * val
 		converted_GBP = converted_EUR * GBP
-		converted_EUR = str(round(converted_EUR,2)) 
-		converted_GBP = str(round(converted_GBP,2))
-		return "$"+str(val)+" USD is £"+converted_GBP+", €"+converted_EUR
+		#format output with commas as thousands separators, round to two decimal places
+		converted_EUR = "{:,}".format(round(converted_EUR,2))
+		converted_GBP = "{:,}".format(round(converted_GBP,2))
+		val = "{:,}".format(val)
 		
-	elif mode == u"£":
+		return "$"+val+" => £"+converted_GBP+" or €"+converted_EUR
+		
+	elif mode == "£":
 		converted_EUR = EUR / GBP * val
 		converted_USD = converted_EUR * USD
-		converted_EUR = str(round(converted_EUR,2))
-		converted_USD = str(round(converted_USD,2))
-		return "£"+str(val)+"  is $"+converted_USD+", €"+converted_EUR
+		converted_EUR = "{:,}".format(round(converted_EUR,2))
+		converted_USD = "{:,}".format(round(converted_USD,2))
+		val = "{:,}".format(val)
+		return "£"+val+" => $"+converted_USD+" or €"+converted_EUR
 		
 	else:
 		converted_GBP = GBP * val 
 		converted_USD = val * USD
-		converted_USD = str(round(converted_USD,2))
-		converted_GBP = str(round(converted_GBP,2))
-		return "€"+str(val)+" is £"+converted_GBP+", $"+converted_USD
+		converted_USD = "{:,}".format(round(converted_USD,2))
+		converted_GBP = "{:,}".format(round(converted_GBP,2))
+		val = "{:,}".format(val)
+		return "€"+val+" => £"+converted_GBP+"or $"+converted_USD
 
 		
-#STRING PARSING ALGORITHM
-def parseString(str):
+
+def parseString(string):
 	
-	str = str.decode('utf-8')
+	#hack to get some regexes to register correctly when term is at end of string
+	string += " "
+	string = string.encode("utf-8")
+	#REGEX PARAMETERS
+	type = r'([\$£€])'
+	number = r'([\d+.,]+)'
+	amounts = r'((million)?(m[\.\,\s])?(k[\.\,\s])?(thousand)?(billion)?(b[\.\,\s])?)'
+	matcher = re.compile(type+number+r"[\s]*"+amounts, re.UNICODE | re.IGNORECASE)
+	matches = re.findall(matcher, string)
+	
 	detected_currency = []
-	started = False
-	i = 0
 	
-	for ch in str:
-		if started:
-			#check ordinal value of character to see whether or not it's a digit
-			if ord(ch) >= 48 and ord(ch) <= 57:
-				detected_currency[i][1] += ch
-
-			elif ch == ".":
-				#If there's already a demical point in this index in the result, assume it is a period and move on
-				if not "." in detected_currency[i][1]:
-					detected_currency[i][1] += "."
-
-			#ignore commas e.g. $3,830 <- don't want this to be interpreted as $3
-			elif ch == ",":
-				continue
-						
-			else:
-				started = False
-				
-		elif ch == "$":
-			started = True
-			__addNewItem(detected_currency,"$")
-			i = len(detected_currency)-1
-			
-		elif ch == u"€":
-			started = True
-			__addNewItem(detected_currency,u"€")
-			i = len(detected_currency)-1
-			
-		elif ch == u"£":
-			started = True
-			__addNewItem(detected_currency,u"£")
-			i = len(detected_currency)-1
+	for match in matches:
+		type = match[0]
+		value = match[1]
+		magnitude = match[2]
 		
-	__removeEmpty(detected_currency)
-			
-	return detected_currency
-
-#clean up list - remove empty sublists
-def __removeEmpty(currency_list):
-	current = len(currency_list)-1
-	while current >= 0:
-		if currency_list[current][1] == "":
-			currency_list.pop(current)
-		current -= 1
-	return currency_list
+		if __checkValid(value):
+			value = __checkMagnitude(value,magnitude)
+			detected_currency.append([type,value])
 	
-#currency found, add sublist to list		
-def __addNewItem(currency_list,currency_type):
-	currency_list.append(["",""])
-	i = len(currency_list)-1
-	currency_list[i][0] = currency_type
-			
+	return detected_currency
+	
+
+	
+def __checkValid(val):
+
+	if val.count(".") >= 2:
+		return False
+		
+	return True
+	
+def __checkMagnitude(val,string):
+	string = __stripChars(string)
+	val = str(val)
+	val = val.replace(",", "")
+	val = float(val)
+	
+	if string == "billion" or string == "b":
+		val *= 1000000000
+	
+	if string == "million" or string == "m":
+		val *= 1000000
+		
+	elif string == "thousand" or string == "k":
+		val *= 1000
+	
+	return val
+
+#strips characters like " ", ".", etc. from "million,", "thousand " etc.
+def __stripChars(string):
+	string = string.replace(",","")
+	string = string.replace(" ","")
+	string = string.replace("."," ")
+	
+	return string
+	
