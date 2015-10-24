@@ -26,9 +26,6 @@ Which can be converted by calling on the convert method:
     for result in results:
         print currencyconverter.convert(result[0],result[1])
         
-    >> $4,430,000 => £2,860,000 or €3,900,000
-    >> £400,000 => $618,770.4 or €544,069.64
+    >> $4,430,000 => £2,860,000 => €3,900,000
+    >> £400,000 => $618,770.4 => €544,069.64
 
-# To do
-
-* Apply DRY to conversion script rather than manually handling cases for each type of currency
