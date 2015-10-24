@@ -13,7 +13,6 @@ def convert(mode, val):
 	#Make API call to fixer.io, load JSON data for exchange rates
 	url = urllib2.urlopen('http://api.fixer.io/latest?symbols=USD,GBP')
 	data = json.load(url)
-	print type(mode)
 	USD = data['rates']['USD']
 	GBP = data['rates']['GBP']
 	EUR = 1.00
@@ -52,7 +51,6 @@ def parseString(string):
 	
 	#hack to get some regexes to register correctly when term is at end of string
 	string += " "
-	string = string.encode("utf-8")
 	#REGEX PARAMETERS
 	type = r'([\$£€])'
 	number = r'([\d+.,]+)'
