@@ -11,14 +11,14 @@ def convert(base, val):
 	#Make API call to fixer.io, load JSON data for exchange rates
 	url = urllib2.urlopen('http://api.fixer.io/latest?symbols=USD,GBP')
 	data = json.load(url)
-	USD = data['rates']['USD']
-	GBP = data['rates']['GBP']
-	EUR = base_rate = 1.00
+	USD_rate = data['rates']['USD']
+	GBP_rate = data['rates']['GBP']
+	EUR_rate = base_rate = 1.00
 
 	convert_between = [
-					['£',GBP],
-					['$',USD],
-					['€',EUR]
+					["GBP", GBP_rate],
+					["USD", USD_rate],
+					["EUR", EUR_rate]
 				]
 	
 	for type in convert_between:
@@ -37,10 +37,11 @@ def convert(base, val):
 		
 	return output
 
+
 def parseString(string):
 	#REGEX PARAMETERS
 	type = r'([\$£€])'
-	number = r'([(\d+),]+(\.\d{2})?)'
+	number = r'([\d+.,]+)'
 	amounts = r'((million|m|billion|b|k|thousand)?(\s|\.|\,|$))?'
 	matcher = re.compile(type+number+r"[\s]*"+amounts, re.UNICODE | re.IGNORECASE)
 	matches = re.findall(matcher, string)
@@ -48,9 +49,9 @@ def parseString(string):
 	detected_currency = []
 	
 	for match in matches:
-		type = match[0]
+		type = __getType(match[0])
 		value = match[1]
-		magnitude = match[4]
+		magnitude = match[3]
 		
 		if __checkValid(value):
 			value = __checkMagnitude(value,magnitude)
@@ -78,3 +79,10 @@ def __checkMagnitude(val,string):
 		val *= 1000
 	return val
 
+def __getType(char):
+	if ord(char) == 36:
+		return "USD"
+	if ord(char) == 172:
+		return "EUR"
+	if ord(char) == 163:
+		return "GBP"
