@@ -78,7 +78,8 @@ def __checkMagnitude(val,string):
 	if string == "thousand" or string == "k":
 		val *= 1000
 	return val
-
+	
+#check ordinal value of character to get type of currency
 def __getType(char):
 	if ord(char) == 36:
 		return "USD"
