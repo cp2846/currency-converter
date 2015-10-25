@@ -19,13 +19,13 @@ Example usage:
     
 This would return a list containing sublists of the type of currency and their values:
     
-    results = [['$',4430000],['£',400000]]
+    results = [['USD',4430000],['GBP',400000]]
     
 Which can be converted by calling on the convert method:
 
     for result in results:
         print currencyconverter.convert(result[0],result[1])
         
-    >> $4,430,000 => £2,860,000 => €3,900,000
-    >> £400,000 => $618,770.4 => €544,069.64
+    >> USD4,430,000 => GBP2,860,000 => EUR3,900,000
+    >> GBP400,000 => USD618,770.4 => EUR544,069.64
 
