@@ -4,88 +4,111 @@ import json
 import urllib2
 import re
 
+"""
+CURRENCY CONVERSION SCRIPT
+Version: Python 2.7
 
-def convert(base, val):
+EXAMPLE USAGE:
+        import currencyconverter
+        string = "this is a string containing values like $100 million"
+        p = currencyconverter.Parser()
+        c = currencyconverter.Converter()
+        detected_currency = p.parse_string(string)
+        for currency in detected_currency:
+            print c.convert(currency)
+            
+>>>100000000USD=>6714400.0GBP=>91996000.0EUR
 
-    val = float(val)
-    #Make API call to fixer.io, load JSON data for exchange rates
-    url = urllib2.urlopen('http://api.fixer.io/latest?symbols=USD,GBP')
-    data = json.load(url)
-    USD_rate = data['rates']['USD']
-    GBP_rate = data['rates']['GBP']
-    EUR_rate = base_rate = 1.00
+"""
 
-    convert_between = [
-                    ["GBP", GBP_rate],
-                    ["USD", USD_rate],
-                    ["EUR", EUR_rate]
-                ]
-    
-    for type in convert_between:
-        if type[0] == base:
-            base_rate = type[1]
-    
-    output = base+"{:,}".format(val)
-    
-    for type in convert_between:
-        if type[1] == base_rate:
-            continue
-        else:
-            converted_amount =  round(type[1] / base_rate * val,2)
-            converted_amount = "{:,}".format(converted_amount)
-        output += " => "+type[0]+str(converted_amount)
+# API calls to fixer.io for exchange rates
+class Fixer:
+    def load_rates(self, currencies, base):
+        self.base = base
+        self.url = "https://api.fixer.io/latest?base=" + base + "&symbols="
+        #append currency types to GET parameters in URL
+        self.url += ",".join(currencies)
+        self.url = urllib2.urlopen(self.url)
+        # return the data as a JSON object
+        return json.load(self.url)
         
-    return output
-
-
-def parseString(string):
-    #REGEX PARAMETERS
-    type = r'([\$£€])'
-    number = r'([\d+.,]+)'
-    amounts = r'((million|m|billion|b|k|thousand)?(\s|\.|\,|$))?'
-    matcher = re.compile(type+number+r"[\s]*"+amounts, re.UNICODE | re.IGNORECASE)
-    matches = re.findall(matcher, string)
+class Converter:
+    def __init__(self):
+        # List of currencies to convert. Edit if more are needed.
+        self.convert_between = ["GBP","USD","EUR"]
+    # accepts an object of currency type and returns a string containing
+    # converted values
+    def get_symbol(self, type):
+        symbols = {
+                    "USD": "$", 
+                    "JPY": "¥", 
+                    "GBP": "£", 
+                    "EUR": "€",
+                  }
+        return symbols[type]
+    def convert(self, money):
+        self.output = str(money.value) + " " + money.type
+        self.data = Fixer().load_rates(self.convert_between, money.type)
+        for currency_type in self.convert_between:
+            # skip base value, no need to convert
+            if currency_type == money.type:
+                continue
+            else:
+                # fetch exchange rate from JSON object, use it to make conversion
+                converted_amount = round(self.data['rates'][currency_type] * money.value, 2)
+            self.output += "=>" + self.get_symbol(currency_type) + str(converted_amount)
+        return self.output
+class Money:
+    def __init__(self, value, symbol, magnitude):
+        self.value = value
+        # magnitude: string such as "million", "billion" etc. indicating the actual amount of currency
+        self.magnitude = magnitude
+        self.symbol = symbol
+        self.type = self.get_type()
+        # get true numerical value after factoring in magnitude
+        self.value = self.convert_value_magnitude()
+    def get_type(self):
+        ordinals = {
+                         36: "USD", 
+                        172: "EUR", 
+                        163: "GBP",
+                        165: "JPY"
+                    }
+        try:
+            return ordinals[ord(self.symbol)]
+        except ValueError:
+            print "Could not get type from '" + self.symbol + "': ord value not recognized"
     
-    detected_currency = []
-    
-    for match in matches:
-        type = __getType(match[0])
-        value = match[1]
-        magnitude = match[3]
         
-        if __checkValid(value):
-            value = __checkMagnitude(value,magnitude)
-            detected_currency.append([type,value])
-    
-    return detected_currency
-    
-def __checkValid(val):
-    val = val.replace(",","")
-    try:
-        val = float(val)
-        return True
-    except:
-        return False
-    
-def __checkMagnitude(val,string):
-    val = val.replace(",", "")
-    val = float(val)
-    
-    if string == "billion" or string == "b":
-        val *= 1000000000
-    if string == "million" or string == "m":
-        val *= 1000000
-    if string == "thousand" or string == "k":
-        val *= 1000
-    return val
-    
-#check ordinal value of character to get type of currency
-def __getType(char):
-    if ord(char) == 36:
-        return "USD"
-    if ord(char) == 172:
-        return "EUR"
-    if ord(char) == 163:
-        return "GBP"
-        
-        
+    def convert_value_magnitude(self):
+        if self.magnitude == "billion" or self.magnitude == "b":
+            self.value *= 1000000000
+        if self.magnitude == "million" or self.magnitude == "m":
+            self.value *= 1000000
+        if self.magnitude == "thousand" or self.magnitude == "k":
+            self.value *= 1000
+        return self.value
+class Parser:
+    # input: string to be analyzed
+    # returns: list of detected currency values
+    def parse_string(self, string):
+        symbols = r'([\$£¥€])'
+        number = r'([\d+.,]+)'
+        amounts = r'((million|m|billion|b|k|thousand)?(\s|\.|\,|$))?'
+        matcher = re.compile(symbols+number+r"[\s]*"+amounts, re.UNICODE | re.IGNORECASE)
+        matches = re.findall(matcher, string)
+        detected_currency = []
+        for match in matches:
+            # each match is a tuple containing the symbol, value, and magnitude of the currency
+            symbol    = match[0]
+            value     = match[1] 
+            magnitude = match[3]
+            try:
+                value = value.replace(",","")
+                value = float(value)
+                detected_currency.append(Money(value, symbol, magnitude))
+            except:
+                print "Possible currency detected - could not parse due to errors:"
+                print "Symbol: " + symbol
+                print "value: " + value
+        return detected_currency
