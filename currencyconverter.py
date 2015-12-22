@@ -110,5 +110,5 @@ class Parser:
             except:
                 print "Possible currency detected - could not parse due to errors:"
                 print "Symbol: " + symbol
-                print "value: " + value
+                print "value: " + str(value)
         return detected_currency
