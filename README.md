@@ -22,7 +22,9 @@ This would return a list containing "Money" class objects with value, symbol, an
 Call the convert method to convert them to other types of currency:
     for found in detected_currency:
         print c.convert(found)
+        
     >> USD4,430,000 => GBP2,860,000 => EUR3,900,000
+    
     >> GBP400,000 => USD618,770.4 => EUR544,069.64
 
 #TODO
