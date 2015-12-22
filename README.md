@@ -7,25 +7,25 @@ This file can be imported into another project, i.e.:
 
     import currencyconverter
 
-Inside the file are defined two methods:
+Create string parser and converter objects:
     
-    parseString(str)
-    convert(mode, val)
+    p = Parser()
+    c = Converter()
     
 Example usage:
     
     string = "This is an example string containing currency values like $4.43 million and £400,000"
-    results = currencyconverter.parseString(string)
+    detected_currency = p.parse_string(string)
     
-This would return a list containing sublists of the type of currency and their values:
+This would return a list containing "Money" class objects with value, symbol, and type fields.
     
-    results = [['USD',4430000],['GBP',400000]]
-    
-Which can be converted by calling on the convert method:
-
-    for result in results:
-        print currencyconverter.convert(result[0],result[1])
-        
+Call the convert method to convert them to other types of currency:
+    for found in detected_currency:
+        print c.convert(found)
     >> USD4,430,000 => GBP2,860,000 => EUR3,900,000
     >> GBP400,000 => USD618,770.4 => EUR544,069.64
 
+#TODO
+* Add support for more currencies
+* detect more obscure ways of formatting currency values, e.g. when formatted as a text string ("one hundred dollars", etc.)
+* update Reddit conversion bot to use new version of currencyconverter
