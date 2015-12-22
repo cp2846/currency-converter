@@ -8,18 +8,19 @@ This file can be imported into another project, i.e.:
     import currencyconverter
 
 Create string parser and converter objects:
-    
+
     p = Parser()
     c = Converter()
     
 Example usage:
-    
+
     string = "This is an example string containing currency values like $4.43 million and £400,000"
     detected_currency = p.parse_string(string)
     
 This would return a list containing "Money" class objects with value, symbol, and type fields.
     
 Call the convert method to convert them to other types of currency:
+
     for found in detected_currency:
         print c.convert(found)
         
