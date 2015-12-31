@@ -100,9 +100,4 @@ class Money:
         if self.magnitude == "thousand" or self.magnitude == "k":
             self.value *= 1000
         return self.value        
-string = "this is a string containing values like $100 million"
-c = Converter()
-detected_currency = c.parse_string(string)
-for currency in detected_currency:  
-    print c.convert(currency)
             
