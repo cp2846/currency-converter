@@ -9,13 +9,12 @@ This file can be imported into another project, i.e.:
 
 Create string parser and converter objects:
 
-    p = Parser()
     c = Converter()
     
 Example usage:
 
     string = "This is an example string containing currency values like $4.43 million and £400,000"
-    detected_currency = p.parse_string(string)
+    detected_currency = c.parse_string(string)
     
 This would return a list containing "Money" class objects with value, symbol, and type fields.
     
@@ -31,4 +30,4 @@ Call the convert method to convert them to other types of currency:
 #TODO
 * Add support for more currencies
 * detect more obscure ways of formatting currency values, e.g. when formatted as a text string ("one hundred dollars", etc.)
-* update Reddit conversion bot to use new version of currencyconverter
+
